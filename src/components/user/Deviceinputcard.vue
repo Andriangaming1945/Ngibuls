@@ -12,7 +12,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['device-added', 'remove-device'])
-const { profile } = useAuth()
+// pakai `user` (id sesi auth), bukan `profile` — profiles.id itu FK ke auth.users.id
+// jadi user.value.id selalu valid begitu user login, sedangkan profile row bisa
+// belum sempat ke-fetch pas form ini dipakai (itu penyebab profile_id null tadi)
+const { user } = useAuth()
 
 const mode = ref('manual')
 const submitting = ref(false)
@@ -48,12 +51,12 @@ function validateForm(form) {
 
 function buildPayload(form, source) {
   return {
-    profile_id: profile.value?.id || null,
+    profile_id: user.value?.id ?? null,
     name: form.name.trim(),
     watt: Number(form.watt),
     hours_per_day: Number(form.hoursPerDay),
     days_per_month: Number(form.daysPerMonth),
-    quantity: parseInt(form.quantity, 10),
+    quantity: parseInt(form.quantity, 10) || 1,
     model: form.model?.trim() || null,
     voltage: form.voltage ? Number(form.voltage) : null,
     current: form.current ? Number(form.current) : null,
@@ -63,14 +66,21 @@ function buildPayload(form, source) {
 }
 
 async function insertDevice(payload, errorRef) {
-  if (!profile.value?.id) {
-    return { id: crypto.randomUUID(), ...payload, created_at: new Date().toISOString() }
+  if (!user.value?.id) {
+    errorRef.value = 'Kamu belum login. Login dulu ya sebelum nambahin perangkat.'
+    return null
   }
+
   submitting.value = true
   const { data, error } = await supabase.from('devices').insert(payload).select().single()
   submitting.value = false
+
   if (error) {
-    errorRef.value = 'Gagal nyimpen perangkat. Coba lagi ya.'
+    // log error asli ke console biar gampang debug kalau masih gagal
+    console.error('Gagal insert device:', error)
+    errorRef.value = error.message?.includes('violates')
+      ? 'Data yang dikirim ada yang nggak valid. Cek lagi angka watt/jam/hari-nya ya.'
+      : 'Gagal nyimpen perangkat. Coba lagi ya.'
     return null
   }
   return data

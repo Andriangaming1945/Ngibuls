@@ -48,7 +48,7 @@ export function useDeviceCatalog() {
         .map((g) => ({
           id: g.name,
           name: g.name,
-          category: g.category,
+          category: getCategoryForDevice(g.name) !== 'Lainnya' ? getCategoryForDevice(g.name) : g.category,
           unit: g.unit,
           status: g.status,
           watt: g.unitCount > 0 ? Math.round(g.totalWatt / g.unitCount) : 0,
@@ -74,6 +74,19 @@ export function useDeviceCatalog() {
     return data || []
   }
 
+  async function fetchDeviceRecommendations(name) {
+    const { data, error: err } = await supabase
+      .from('saved_recommendations')
+      .select(
+        'id, current_value, suggested_value, potential_saving_amount, potential_saving_cost, created_at, profile_id, profiles(name, email)'
+      )
+      .eq('contributor_type', 'device')
+      .ilike('contributor_name', name)
+      .order('created_at', { ascending: false })
+    if (err) throw err
+    return data || []
+  }
+
   async function updateDevice(name, payload) {
     saving.value = true
     error.value = ''
@@ -89,10 +102,15 @@ export function useDeviceCatalog() {
     }
   }
 
+
+  // gak pernah hapus baris beneran.
   async function deleteDevice(name) {
     error.value = ''
     try {
-      const { error: err } = await supabase.from('devices').delete().ilike('name', name)
+      const { error: err } = await supabase
+        .from('devices')
+        .update({ status: 'inactive' })
+        .ilike('name', name)
       if (err) throw err
       catalog.value = catalog.value.filter((d) => d.name !== name)
     } catch (err) {
@@ -108,6 +126,7 @@ export function useDeviceCatalog() {
     error,
     fetchCatalog,
     fetchDeviceDetail,
+    fetchDeviceRecommendations,
     updateDevice,
     deleteDevice,
   }

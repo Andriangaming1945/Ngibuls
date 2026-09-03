@@ -7,8 +7,18 @@ import DeviceCatalogToolbar from './DeviceCatalogToolbar.vue'
 import DeviceCatalogTable from './DeviceCatalogTable.vue'
 import DeviceFormModal from './DeviceCatalogFormModal.vue'
 import DeleteConfirmModal from './DeleteConfirmModal.vue'
+import DeviceDetailModal from './DeviceDetailModal.vue'
 
-const { catalog, loading, saving, fetchCatalog, updateDevice, deleteDevice } = useDeviceCatalog()
+const {
+  catalog,
+  loading,
+  saving,
+  fetchCatalog,
+  fetchDeviceDetail,
+  fetchDeviceRecommendations,
+  updateDevice,
+  deleteDevice,
+} = useDeviceCatalog()
 
 const PAGE_SIZE = 7
 const search = ref('')
@@ -55,6 +65,30 @@ function toggleSelectAll() {
     : [...new Set([...selectedIds.value, ...idsOnPage])]
 }
 
+// --- Detail modal ---
+const showDetailModal = ref(false)
+const detailLoading = ref(false)
+const detailDevice = ref({})
+const detailUsageRows = ref([])
+const detailRecommendationRows = ref([])
+
+async function openDetail(device) {
+  detailDevice.value = device
+  showDetailModal.value = true
+  detailLoading.value = true
+  try {
+    const [usage, recs] = await Promise.all([
+      fetchDeviceDetail(device.name),
+      fetchDeviceRecommendations(device.name),
+    ])
+    detailUsageRows.value = usage
+    detailRecommendationRows.value = recs
+  } finally {
+    detailLoading.value = false
+  }
+}
+
+// --- Edit modal ---
 const showFormModal = ref(false)
 const formError = ref('')
 const form = ref({ id: null, name: '', category: '', defaultWatt: 0, unit: 'unit', status: 'active' })
@@ -91,6 +125,7 @@ async function submitForm() {
   }
 }
 
+// --- Delete modal ---
 const showDeleteModal = ref(false)
 const deleting = ref(false)
 const deviceToDelete = ref(null)
@@ -169,6 +204,7 @@ function exportPDF() {
       :devices="paged"
       :loading="loading"
       :selected-ids="selectedIds"
+      @view="openDetail"
       @edit="openEdit"
       @delete="confirmDelete"
       @toggle-select="toggleSelect"
@@ -183,6 +219,15 @@ function exportPDF() {
         <button type="button" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" class="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40">›</button>
       </div>
     </div>
+
+    <DeviceDetailModal
+      :show="showDetailModal"
+      :device="detailDevice"
+      :usage-rows="detailUsageRows"
+      :recommendation-rows="detailRecommendationRows"
+      :loading="detailLoading"
+      @close="showDetailModal = false"
+    />
 
     <DeviceFormModal
       :show="showFormModal"
