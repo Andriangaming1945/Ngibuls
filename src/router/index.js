@@ -55,18 +55,14 @@ const router = createRouter({
         {
           path: 'Managementuser',
           name: 'Managementuser',
-          component: () => import('../components/admin/ProfileManagement.vue'),
+          component: () => import('../components/admin/profilemanage/ProfileManagement.vue'),
         },
         {
           path: 'Managementdata',
           name: 'Managementdata',
-          component: () => import('../components/admin/DataManagement.vue'),
+          component: () => import('../components/admin/Managementdata/PerangkatListrikTab.vue'),
         },
-        {
-          path: 'rekomendasi',
-          name: 'rekomendasi',
-          component: () => import('../components/admin/Rekomendasi.vue'),
-        },
+       
       ],
     }
   ]

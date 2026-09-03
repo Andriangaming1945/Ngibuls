@@ -1,12 +1,6 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 
-/**
- * Composable untuk manajemen akun pengguna (admin).
- * Mengasumsikan tabel `profiles` di Supabase dengan kolom:
- *   id, name, email, role, status, avatar_url, last_login, created_at
- * Sesuaikan nama tabel/kolom di bawah kalau skema kamu berbeda.
- */
 export function useUsers() {
   const users = ref([])
   const loading = ref(false)
@@ -31,9 +25,12 @@ export function useUsers() {
     }
   }
 
-
   async function createUser(payload) {
-    const { data, error: err } = await supabase.functions.invoke('create-user', {
+    if (!['user', 'admin'].includes(payload.role)) {
+      throw new Error('Role tidak valid.')
+    }
+
+    const { data, error: err } = await supabase.functions.invoke('admin-create-user', {
       body: {
         name: payload.name,
         email: payload.email,
@@ -44,15 +41,21 @@ export function useUsers() {
     })
 
     if (err) throw err
-    return data
+    if (data?.error) throw new Error(data.error)
+
+    users.value.unshift(data.profile)
+    return data.profile
   }
 
   async function updateUser(id, payload) {
+    if (!['user', 'admin'].includes(payload.role)) {
+      throw new Error('Role tidak valid.')
+    }
+
     const { data, error: err } = await supabase
       .from('profiles')
       .update({
         name: payload.name,
-        email: payload.email,
         role: payload.role,
         status: payload.status,
       })
@@ -61,6 +64,9 @@ export function useUsers() {
       .single()
 
     if (err) throw err
+
+    const idx = users.value.findIndex((u) => u.id === id)
+    if (idx !== -1) users.value[idx] = data
     return data
   }
 
@@ -73,20 +79,21 @@ export function useUsers() {
       .single()
 
     if (err) throw err
+
+    const idx = users.value.findIndex((u) => u.id === id)
+    if (idx !== -1) users.value[idx] = data
     return data
   }
 
-  /**
-   * Menghapus user. Menghapus baris di `profiles` saja aman dari client.
-   * Menghapus akun auth-nya (supabase.auth.admin.deleteUser) juga perlu
-   * lewat Edge Function dengan service_role key, sama seperti createUser.
-   */
   async function deleteUser(id) {
-    const { error: err } = await supabase.from('profiles').delete().eq('id', id)
-    if (err) throw err
+    const { data, error: err } = await supabase.functions.invoke('admin-delete-user', {
+      body: { userId: id },
+    })
 
-    // Opsional: panggil Edge Function untuk hapus akun auth-nya juga.
-    // await supabase.functions.invoke('delete-user', { body: { id } })
+    if (err) throw err
+    if (data?.error) throw new Error(data.error)
+
+    users.value = users.value.filter((u) => u.id !== id)
   }
 
   return {

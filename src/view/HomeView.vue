@@ -19,8 +19,8 @@ import { Zap, ArrowRight, PlayCircle } from 'lucide-vue-next'
            so it always covers edge-to-edge no matter how wide any parent/ancestor is. -->
       <div class="absolute inset-y-0 left-1/2 z-0 w-screen -translate-x-1/2">
         <img :src="backgroundImg" alt="Panorama kota" class="h-full w-full object-cover" />
-        <div class="absolute inset-0 bg-gradient-to-br from-[#0F2747]/95 via-[#0F2747]/85 to-[#163A5F]/75" />
-        <div class="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-transparent to-transparent" />
+        <div class="absolute inset-0 bg-gradient-to-br from-[#0F2747]/97 via-[#0F2747]/92 to-[#163A5F]/85" />
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/20 to-transparent" />
       </div>
 
       <!-- Papan sirkuit animasi: garis jalur + titik cahaya yang mengalir mengikuti jalur -->
@@ -96,27 +96,27 @@ import { Zap, ArrowRight, PlayCircle } from 'lucide-vue-next'
       <div class="relative z-10">
         <div class="mx-auto flex min-h-[calc(100vh-6rem)] max-w-[1280px] flex-col justify-center px-4 pb-16 pt-28 sm:px-6 sm:pt-32 lg:px-8 lg:pt-36">
           <div class="max-w-[640px] animate-[fadeInUp_0.7s_ease-out_forwards]">
-            <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-1.5 backdrop-blur-sm">
+            <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 backdrop-blur-sm">
               <span class="relative flex h-2 w-2">
-                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#16A34A] opacity-75"></span>
-                <span class="relative inline-flex h-2 w-2 rounded-full bg-[#16A34A]"></span>
+                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#4ADE80] opacity-75"></span>
+                <span class="relative inline-flex h-2 w-2 rounded-full bg-[#4ADE80]"></span>
               </span>
-              <Zap class="h-3.5 w-3.5 text-[#16A34A]" />
-              <span class="text-xs font-medium text-white/80">Pantau listrik & air secara real-time</span>
+              <Zap class="h-3.5 w-3.5 text-[#4ADE80]" />
+              <span class="text-xs font-semibold text-white">Pantau listrik & air secara real-time</span>
             </div>
 
-            <h1 class="text-[40px] font-bold leading-[1.05] tracking-tight text-white sm:text-[56px] lg:text-[68px]">
+            <h1 class="text-[40px] font-bold leading-[1.05] tracking-tight text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.45)] sm:text-[56px] lg:text-[68px]">
               Tahu Ke Mana
               <span class="relative inline-block text-[#4ADE80]">
                 Biaya Energimu
                 <svg class="absolute -bottom-1 left-0 w-full" height="10" viewBox="0 0 200 10" preserveAspectRatio="none">
-                  <path d="M0,6 Q50,0 100,5 T200,4" fill="none" stroke="#16A34A" stroke-width="4" stroke-linecap="round" opacity="0.7" />
+                  <path d="M0,6 Q50,0 100,5 T200,4" fill="none" stroke="#4ADE80" stroke-width="4" stroke-linecap="round" opacity="0.9" />
                 </svg>
               </span>
               Pergi?
             </h1>
 
-            <p class="mt-6 max-w-[550px] text-base leading-relaxed text-white/65 sm:text-lg">
+            <p class="mt-6 max-w-[550px] text-base font-medium leading-relaxed text-white/90 [text-shadow:0_1px_8px_rgba(0,0,0,0.35)] sm:text-lg">
               Ngibuls membantu kamu menganalisis penggunaan listrik dan air, menemukan sumber pemborosan, dan mendapatkan rekomendasi penghematan yang sesuai dengan kebiasaanmu.
             </p>
 
@@ -128,11 +128,11 @@ import { Zap, ArrowRight, PlayCircle } from 'lucide-vue-next'
               
             </div>
 
-            <div class="mt-8 flex items-center gap-2 text-xs font-medium tracking-wide text-white/45">
+            <div class="mt-8 flex items-center gap-2 text-xs font-semibold tracking-wide text-white/70">
               <span>Temukan</span>
-              <span class="h-1 w-1 rounded-full bg-[#16A34A]"></span>
+              <span class="h-1 w-1 rounded-full bg-[#4ADE80]"></span>
               <span>Pahami</span>
-              <span class="h-1 w-1 rounded-full bg-[#16A34A]"></span>
+              <span class="h-1 w-1 rounded-full bg-[#4ADE80]"></span>
               <span>Hemat</span>
             </div>
           </div>

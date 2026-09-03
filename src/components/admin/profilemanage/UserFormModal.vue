@@ -59,7 +59,6 @@ defineEmits(['close', 'submit'])
               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[#0F172A] transition-shadow focus:border-[#16A34A] focus:outline-none focus:ring-4 focus:ring-[#16A34A]/10"
             >
               <option value="admin">Admin</option>
-              <option value="editor">Editor</option>
               <option value="user">User</option>
             </select>
           </div>

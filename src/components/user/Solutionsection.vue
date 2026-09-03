@@ -302,33 +302,6 @@ async function runAnalysis() {
         <span :class="analyzed && topContributor ? 'text-[#4CAF50]' : ''">03 — Hemat</span>
       </div>
 
-      <!-- CTA Analisis: sengaja ditaruh di sini (bukan di bawah form panjang) supaya selalu
-           kelihatan tanpa perlu scroll dulu, dan dibikin lebih besar + warna hijau (bukan navy)
-           biar lebih menonjol sebagai tombol aksi utama. -->
-      <div v-if="!loadingData" class="mx-auto mt-8 max-w-xl">
-        <button
-          type="button"
-          @click="runAnalysis"
-          :disabled="!canAnalyze || savingAnalysis"
-          class="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#16A34A] px-8 py-5 text-base font-bold text-white shadow-[0_10px_30px_-10px_rgba(22,163,74,0.55)] transition-all duration-200 hover:bg-[#15803D] hover:shadow-[0_14px_36px_-8px_rgba(22,163,74,0.65)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
-        >
-          <Loader2 v-if="savingAnalysis" class="h-5 w-5 animate-spin" />
-          <Sparkles v-else class="h-5 w-5" />
-          {{ savingAnalysis ? 'Menyimpan ke riwayat...' : 'Analisis Penggunaan Saya' }}
-          <ArrowRight v-if="!savingAnalysis" class="h-5 w-5" />
-        </button>
-        <p v-if="!canAnalyze" class="mt-2.5 text-center text-xs text-[#64748B]">
-          Tambahkan minimal satu perangkat atau aktivitas air dulu.
-        </p>
-        <p v-else-if="analysisSaveError" class="mt-2.5 text-center text-xs text-red-600">{{ analysisSaveError }}</p>
-        <p v-else-if="!analyzed" class="mt-2.5 text-center text-xs text-[#64748B]">
-          Estimasi sudah muncul di bawah — klik tombol di atas untuk dapat rekomendasi & simulasi personal.
-        </p>
-        <p v-else class="mt-2.5 text-center text-xs text-[#4CAF50]">
-          Tersimpan ke riwayat profil kamu.
-        </p>
-      </div>
-
       <div v-if="loadingData" class="mt-12 flex items-center justify-center gap-2 text-sm text-[#64748B]">
         <Loader2 class="h-4 w-4 animate-spin" />
         Memuat data kamu...
@@ -482,6 +455,32 @@ async function runAnalysis() {
                 </select>
               </div>
             </div>
+          </div>
+
+          <!-- CTA Analisis: dipindah ke bawah Pengaturan Biaya, jadi ada di akhir alur input
+               kolom kiri sebelum user lihat hasil di kolom kanan. -->
+          <div>
+            <button
+              type="button"
+              @click="runAnalysis"
+              :disabled="!canAnalyze || savingAnalysis"
+              class="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#16A34A] px-8 py-5 text-base font-bold text-white shadow-[0_10px_30px_-10px_rgba(22,163,74,0.55)] transition-all duration-200 hover:bg-[#15803D] hover:shadow-[0_14px_36px_-8px_rgba(22,163,74,0.65)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+            >
+              <Loader2 v-if="savingAnalysis" class="h-5 w-5 animate-spin" />
+              <Sparkles v-else class="h-5 w-5" />
+              {{ savingAnalysis ? 'Menyimpan ke riwayat...' : 'Analisis Penggunaan Saya' }}
+              <ArrowRight v-if="!savingAnalysis" class="h-5 w-5" />
+            </button>
+            <p v-if="!canAnalyze" class="mt-2.5 text-center text-xs text-[#64748B]">
+              Tambahkan minimal satu perangkat atau aktivitas air dulu.
+            </p>
+            <p v-else-if="analysisSaveError" class="mt-2.5 text-center text-xs text-red-600">{{ analysisSaveError }}</p>
+            <p v-else-if="!analyzed" class="mt-2.5 text-center text-xs text-[#64748B]">
+              Estimasi sudah muncul di sebelah kanan — klik tombol di atas untuk dapat rekomendasi & simulasi personal.
+            </p>
+            <p v-else class="mt-2.5 text-center text-xs text-[#4CAF50]">
+              Tersimpan ke riwayat profil kamu.
+            </p>
           </div>
         </div>
 

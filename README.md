@@ -36,3 +36,170 @@ npm run dev
 ```sh
 npm run build
 ```
+
+```
+hematlistrik
+├─ .env
+├─ README.md
+├─ index.html
+├─ jsconfig.json
+├─ package-lock.json
+├─ package.json
+├─ public
+│  └─ favicon.ico
+├─ src
+│  ├─ App.vue
+│  ├─ assets
+│  │  ├─ img
+│  │  │  └─ background.jpeg
+│  │  └─ main.css
+│  ├─ components
+│  │  ├─ Footer.vue
+│  │  ├─ Login.vue
+│  │  ├─ Navbar.vue
+│  │  ├─ Registrasi.vue
+│  │  ├─ SaveHistoryBanner.vue
+│  │  ├─ admin
+│  │  │  ├─ DataManagement.vue
+│  │  │  ├─ ProfileManagement.vue
+│  │  │  ├─ Rekomendasi.vue
+│  │  │  ├─ Sidebarmin.vue
+│  │  │  └─ profilemanage
+│  │  │     ├─ DeleteUserModal.vue
+│  │  │     ├─ UserFormModal.vue
+│  │  │     ├─ UsersCardList.vue
+│  │  │     ├─ UsersHeader.vue
+│  │  │     ├─ UsersPagination.vue
+│  │  │     ├─ UsersTable.vue
+│  │  │     └─ UsersToolbar.vue
+│  │  ├─ profile
+│  │  │  ├─ Basicinfoform.vue
+│  │  │  ├─ Profileavatarcard.vue
+│  │  │  ├─ Recommendationhistory.vue
+│  │  │  └─ profile.vue
+│  │  ├─ sidebar.vue
+│  │  └─ user
+│  │     ├─ Analysisresultcard.vue
+│  │     ├─ Deviceinputcard.vue
+│  │     ├─ Habitinputcard.vue
+│  │     ├─ Recommendationcard.vue
+│  │     ├─ Simulationcard.vue
+│  │     └─ Solutionsection.vue
+│  ├─ composables
+│  │  ├─ Energycalculations.js
+│  │  ├─ Useauth.js
+│  │  ├─ Usengibulsdata.js
+│  │  ├─ Useusers.js
+│  │  └─ useScrollReveal.js
+│  ├─ lib
+│  │  └─ supabase.js
+│  ├─ main.js
+│  ├─ router
+│  │  └─ index.js
+│  └─ view
+│     ├─ Authcallbackview.vue
+│     ├─ ContextSection.vue
+│     ├─ HomeView.vue
+│     ├─ Mengubah.vue
+│     ├─ PotentialSavingSection.vue
+│     ├─ Problemssection.vue
+│     └─ admin
+│        ├─ Managementuser.vue
+│        ├─ adminlayout.vue
+│        └─ dashboardmin.vue
+├─ supabase
+│  ├─ .temp
+│  │  ├─ cli-latest
+│  │  └─ linked-project.json
+│  ├─ config.toml
+│  └─ functions
+│     └─ create-user
+│        ├─ .npmrc
+│        ├─ deno.json
+│        └─ index.ts
+└─ vite.config.js
+
+```
+```
+hematlistrik
+├─ .env
+├─ README.md
+├─ index.html
+├─ jsconfig.json
+├─ package-lock.json
+├─ package.json
+├─ public
+│  └─ favicon.ico
+├─ src
+│  ├─ App.vue
+│  ├─ assets
+│  │  ├─ img
+│  │  │  └─ background.jpeg
+│  │  └─ main.css
+│  ├─ components
+│  │  ├─ Footer.vue
+│  │  ├─ Login.vue
+│  │  ├─ Navbar.vue
+│  │  ├─ Registrasi.vue
+│  │  ├─ SaveHistoryBanner.vue
+│  │  ├─ admin
+│  │  │  ├─ DataManagement.vue
+│  │  │  ├─ ProfileManagement.vue
+│  │  │  ├─ Rekomendasi.vue
+│  │  │  ├─ Sidebarmin.vue
+│  │  │  └─ profilemanage
+│  │  │     ├─ DeleteUserModal.vue
+│  │  │     ├─ UserFormModal.vue
+│  │  │     ├─ UsersCardList.vue
+│  │  │     ├─ UsersHeader.vue
+│  │  │     ├─ UsersPagination.vue
+│  │  │     ├─ UsersTable.vue
+│  │  │     └─ UsersToolbar.vue
+│  │  ├─ profile
+│  │  │  ├─ Basicinfoform.vue
+│  │  │  ├─ Profileavatarcard.vue
+│  │  │  ├─ Recommendationhistory.vue
+│  │  │  └─ profile.vue
+│  │  ├─ sidebar.vue
+│  │  └─ user
+│  │     ├─ Analysisresultcard.vue
+│  │     ├─ Deviceinputcard.vue
+│  │     ├─ Habitinputcard.vue
+│  │     ├─ Recommendationcard.vue
+│  │     ├─ Simulationcard.vue
+│  │     └─ Solutionsection.vue
+│  ├─ composables
+│  │  ├─ Energycalculations.js
+│  │  ├─ Useauth.js
+│  │  ├─ Usengibulsdata.js
+│  │  ├─ Useusers.js
+│  │  └─ useScrollReveal.js
+│  ├─ lib
+│  │  └─ supabase.js
+│  ├─ main.js
+│  ├─ router
+│  │  └─ index.js
+│  └─ view
+│     ├─ Authcallbackview.vue
+│     ├─ ContextSection.vue
+│     ├─ HomeView.vue
+│     ├─ Mengubah.vue
+│     ├─ PotentialSavingSection.vue
+│     ├─ Problemssection.vue
+│     └─ admin
+│        ├─ Managementuser.vue
+│        ├─ adminlayout.vue
+│        └─ dashboardmin.vue
+├─ supabase
+│  ├─ .temp
+│  │  ├─ cli-latest
+│  │  └─ linked-project.json
+│  ├─ config.toml
+│  └─ functions
+│     └─ create-user
+│        ├─ .npmrc
+│        ├─ deno.json
+│        └─ index.ts
+└─ vite.config.js
+
+```

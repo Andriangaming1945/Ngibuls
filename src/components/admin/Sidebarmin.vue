@@ -28,7 +28,6 @@ const adminNavItems = [
   { key: 'dashboard', label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
   { key: 'users', label: 'Manajemen User', path: '/admin/Managementuser', icon: Users },
   { key: 'data', label: 'Manajemen Data', path: '/admin/Managementdata', icon: Database },
-  {key : 'rekomendasi', label: 'Rekomendasi', path: '/admin/rekomendasi', icon: Lightbulb},
   { key: 'laporan', label: 'Laporan', path: '/admin/laporan', icon: FileBarChart },
   { key: 'pengaturan', label: 'Pengaturan', path: '/admin/pengaturan', icon: Settings },
 ]
@@ -68,8 +67,11 @@ watch(avatarSrc, () => {
 
 async function handleLogout() {
   closeSidebar()
-  await logout?.()
-  router.push('/')
+  try {
+    await logout?.()
+  } finally {
+    router.replace('/')
+  }
 }
 </script>
 

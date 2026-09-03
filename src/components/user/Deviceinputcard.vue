@@ -369,7 +369,7 @@ function removeDevice(id) {
 
     <form v-else class="mt-5 space-y-4" @submit.prevent="submitManual">
       <div>
-        <label class="text-sm font-medium text-[#0F172A]">Nama Benda</label>
+        <label class="text-sm font-medium text-[#0F172A]">Nama Benda Elektrik</label>
         <div
           class="mt-1.5 flex flex-wrap items-center gap-2 rounded-lg border border-[#E2E8F0] px-3 py-2 focus-within:border-[#4CAF50] focus-within:outline-none focus-within:ring-2 focus-within:ring-[#4CAF50]/15"
         >

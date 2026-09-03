@@ -12,6 +12,8 @@
     "@supabase/supabase-js": "^2.112.4",
     "@tailwindcss/vite": "^4.3.3",
     "animejs": "^4.5.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-vue-next": "^1.0.0",
     "tailwindcss": "^4.3.3",
     "tesseract.js": "^7.0.0",
