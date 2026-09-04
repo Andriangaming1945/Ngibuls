@@ -15,7 +15,7 @@ const props = defineProps({
 defineEmits(['close'])
 
 function formatRupiah(n) {
-  return `Rp${Number(n || 0).toLocaleString('id-ID')}`
+  return `Rp${Math.round(Number(n || 0)).toLocaleString('id-ID')}`
 }
 function formatDate(d) {
   if (!d) return '-'
@@ -26,9 +26,64 @@ function initials(name) {
   return name.trim().charAt(0).toUpperCase()
 }
 
+// Tidak lagi dedupe berdasarkan isi row. Setiap row punya id unik dari DB,
+// jadi rekomendasi dengan isi kebetulan sama tetap ditampilkan semua —
+// itu data valid, bukan duplikat submit dobel.
+const uniqueRecommendations = computed(() => props.recommendationRows)
+
 const totalSaving = computed(() =>
-  props.recommendationRows.reduce((sum, r) => sum + Number(r.potential_saving_cost || 0), 0)
+  uniqueRecommendations.value.reduce((sum, r) => sum + Number(r.potential_saving_cost || 0), 0)
 )
+
+// --- Daftar Prioritas ---
+// Logika ini disalin persis dari komponen rekomendasi (SolutionSection/sejenisnya):
+// budget_preference cuma nyimpen 'none' | 'low' | 'invest', tips-nya statis
+// per preferensi — bukan field terpisah di DB. Prioritas Tinggi selalu dihitung
+// dari current_value & suggested_value milik row itu sendiri.
+const budgetPreferenceLabel = {
+  none: 'Tanpa Biaya',
+  low: 'Budget Rendah',
+  invest: 'Bersedia Investasi',
+}
+
+const tipsByPreference = {
+  none: [
+    'Matikan perangkat saat tidak digunakan, jangan biarkan menyala tanpa alasan.',
+    'Cabut charger atau adaptor yang masih tertancap meski tidak dipakai.',
+  ],
+  low: [
+    'Ganti lampu rumah ke jenis LED yang lebih hemat listrik.',
+    'Gunakan power strip dengan saklar supaya gampang mematikan beberapa perangkat sekaligus.',
+  ],
+  invest: [
+    'Pertimbangkan perangkat dengan rating efisiensi energi lebih tinggi (misal AC inverter).',
+    'Gunakan shower head hemat air untuk mengurangi konsumsi air harian.',
+  ],
+}
+
+function priorityListFor(r) {
+  const tips = tipsByPreference[r.budget_preference] || tipsByPreference.none
+  return [
+    {
+      level: 'Prioritas Tinggi',
+      dot: 'bg-red-500',
+      box: 'border-red-200 bg-red-50',
+      text: `Kurangi jam pemakaian ${props.device?.name || 'perangkat ini'} dari ${r.current_value} ke ${r.suggested_value} — dampaknya paling besar terhadap tagihan.`,
+    },
+    {
+      level: 'Prioritas Sedang',
+      dot: 'bg-amber-500',
+      box: 'border-amber-200 bg-amber-50',
+      text: tips[1] || tips[0],
+    },
+    {
+      level: 'Mudah Dilakukan',
+      dot: 'bg-green-500',
+      box: 'border-green-200 bg-green-50',
+      text: tips[0],
+    },
+  ]
+}
 </script>
 
 <template>
@@ -108,14 +163,14 @@ const totalSaving = computed(() =>
           </div>
 
           <p
-            v-if="recommendationRows.length === 0"
+            v-if="uniqueRecommendations.length === 0"
             class="mt-3 rounded-xl bg-slate-50 py-6 text-center text-sm text-[#64748B]"
           >
             Belum ada rekomendasi yang menyangkut perangkat ini.
           </p>
 
           <div v-else class="mt-3 space-y-3">
-            <div v-for="r in recommendationRows" :key="r.id" class="rounded-xl border border-slate-200 p-4">
+            <div v-for="r in uniqueRecommendations" :key="r.id" class="rounded-xl border border-slate-200 p-4">
               <div class="flex items-start justify-between">
                 <div class="flex items-center gap-3">
                   <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F59E0B]/10 text-[#F59E0B]">
@@ -135,6 +190,31 @@ const totalSaving = computed(() =>
                 <span v-if="r.potential_saving_amount" class="text-[#64748B]">
                   · hemat ≈ {{ Number(r.potential_saving_amount).toLocaleString('id-ID') }}/bulan
                 </span>
+              </div>
+
+              <!-- Daftar Prioritas -->
+              <div class="mt-3">
+                <div class="flex items-center justify-between">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-[#64748B]">Daftar Prioritas</p>
+                  <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-[#64748B]">
+                    Preferensi: {{ budgetPreferenceLabel[r.budget_preference] || 'Tanpa Biaya' }}
+                  </span>
+                </div>
+
+                <div class="mt-2 space-y-2">
+                  <div
+                    v-for="p in priorityListFor(r)"
+                    :key="p.level"
+                    class="flex items-start gap-2.5 rounded-lg border p-2.5"
+                    :class="p.box"
+                  >
+                    <span class="mt-1 h-2 w-2 flex-shrink-0 rounded-full" :class="p.dot"></span>
+                    <div>
+                      <p class="text-xs font-semibold text-[#0F172A]">{{ p.level }}</p>
+                      <p class="mt-0.5 text-xs text-[#64748B]">{{ p.text }}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

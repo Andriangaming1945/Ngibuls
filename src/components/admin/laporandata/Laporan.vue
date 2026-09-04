@@ -1,0 +1,3 @@
+<template>
+    Management data
+</template>

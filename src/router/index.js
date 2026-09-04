@@ -62,7 +62,11 @@ const router = createRouter({
           name: 'Managementdata',
           component: () => import('../components/admin/Managementdata/PerangkatListrikTab.vue'),
         },
-       
+        {
+          path: 'laporan',
+          name: 'laporan',
+          component: () => import('../components/admin/laporandata/Laporan.vue'),
+        }
       ],
     }
   ]

@@ -1,8 +1,9 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { TrendingDown, Wallet, Save, Loader2, CheckCircle2 } from 'lucide-vue-next'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/composables/useAuth'
+import { useDeviceCatalog } from '@/composables/useDeviceCatalog'
 import { deviceMonthlyKwh, activityMonthlyLiters, formatRupiah, formatNumber } from '@/composables/energyCalculations'
 
 const props = defineProps({
@@ -20,6 +21,13 @@ const props = defineProps({
 const emit = defineEmits(['update:budgetPreference'])
 const { profile } = useAuth()
 
+// Dipakai buat cek status aktif/nonaktif perangkat sebelum simpan ke DB.
+// Reuse composable yang sama dengan admin, bukan bikin query/table baru.
+const { catalog, fetchCatalog } = useDeviceCatalog()
+onMounted(() => {
+  fetchCatalog()
+})
+
 const preferenceOptions = [
   { value: 'none', label: 'Tanpa Biaya' },
   { value: 'low', label: 'Budget Rendah' },
@@ -27,6 +35,20 @@ const preferenceOptions = [
 ]
 
 const isDevice = computed(() => props.contributor?.type === 'device')
+
+// Cari status perangkat di master data berdasarkan nama. Kalau perangkatnya
+// gak ketemu di catalog (misal belum sempat ke-load), default-nya dianggap
+// aktif supaya gak nge-block simpan tanpa alasan yang jelas ke user.
+const matchedDevice = computed(() => {
+  if (!isDevice.value || !props.contributor) return null
+  return catalog.value.find((d) => d.name === props.contributor.name) || null
+})
+
+const isDeviceActive = computed(() => {
+  if (!isDevice.value) return true // water activities: gak ada konsep status, selalu dianggap boleh disimpan
+  if (!matchedDevice.value) return true
+  return matchedDevice.value.status === 'active'
+})
 
 const currentValue = computed(() => {
   if (!props.contributor) return 0
@@ -74,6 +96,9 @@ const budgetTips = computed(() => {
 const saving = ref(false)
 const saved = ref(false)
 const saveError = ref('')
+// true kalau rekomendasi ditampilkan tapi TIDAK masuk ke database karena
+// perangkatnya sedang nonaktif di master data (biar storage gak numpuk).
+const savedButSkippedDb = ref(false)
 
 // Kalau kontributor berubah (analisis ulang / data baru), reset status "tersimpan"
 // biar tombol Simpan aktif lagi buat hasil yang baru.
@@ -81,6 +106,7 @@ watch(
   () => props.contributor,
   () => {
     saved.value = false
+    savedButSkippedDb.value = false
     saveError.value = ''
   }
 )
@@ -94,6 +120,18 @@ async function saveRecommendation() {
 
   saving.value = true
   saveError.value = ''
+  savedButSkippedDb.value = false
+
+  // Perangkat nonaktif di master data → rekomendasi tetap dihitung & tampil
+  // di layar (computed di atas jalan seperti biasa), tapi TIDAK di-insert
+  // ke saved_recommendations supaya gak menuhin storage buat perangkat
+  // yang udah di-nonaktifkan admin.
+  if (isDevice.value && !isDeviceActive.value) {
+    saving.value = false
+    savedButSkippedDb.value = true
+    saved.value = true
+    return
+  }
 
   const payload = {
     profile_id: profile.value.id,
@@ -126,6 +164,9 @@ async function saveRecommendation() {
       
     </div>
     <p v-if="saveError" class="mt-1.5 text-xs text-red-600">{{ saveError }}</p>
+    <p v-if="savedButSkippedDb" class="mt-1.5 text-xs text-amber-600">
+      Perangkat ini sedang nonaktif di master data — rekomendasi ditampilkan tapi tidak disimpan ke database.
+    </p>
 
     <div v-if="contributor" class="mt-4 rounded-xl border border-[#4CAF50]/20 bg-[#4CAF50]/[0.04] p-4">
       <p class="text-sm text-[#0F172A]">

@@ -12,9 +12,11 @@ export function useDeviceCatalog() {
     loading.value = true
     error.value = ''
     try {
+      // Tidak difilter deleted_at di sini — admin memang harus tetap melihat
+      // row yang sudah dinonaktifkan (soft-deleted), supaya bisa diaktifkan lagi.
       const { data, error: err } = await supabase
         .from('devices')
-        .select('id, name, watt, quantity, profile_id, updated_at, category, unit, status')
+        .select('id, name, watt, quantity, profile_id, updated_at, category, unit, status, deleted_at')
 
       if (err) throw err
 
@@ -27,6 +29,7 @@ export function useDeviceCatalog() {
             category: row.category || getCategoryForDevice(row.name),
             unit: row.unit || 'unit',
             status: row.status || 'active',
+            deletedAt: row.deleted_at,
             totalWatt: 0,
             unitCount: 0,
             userIds: new Set(),
@@ -39,8 +42,13 @@ export function useDeviceCatalog() {
         g.totalWatt += watt * qty
         g.unitCount += qty
         if (row.profile_id) g.userIds.add(row.profile_id)
-        if (row.updated_at && (!g.lastUpdated || new Date(row.updated_at) > new Date(g.lastUpdated))) {
+        // Status/deleted_at representatif diambil dari row yang paling baru
+        // diupdate, supaya konsisten dengan toggle terakhir yang dilakukan
+        // admin untuk device ini.
+        if (row.updated_at && (!g.lastUpdated || new Date(row.updated_at) >= new Date(g.lastUpdated))) {
           g.lastUpdated = row.updated_at
+          g.status = row.status || 'active'
+          g.deletedAt = row.deleted_at
         }
       }
 
@@ -51,6 +59,7 @@ export function useDeviceCatalog() {
           category: getCategoryForDevice(g.name) !== 'Lainnya' ? getCategoryForDevice(g.name) : g.category,
           unit: g.unit,
           status: g.status,
+          deleted_at: g.deletedAt,
           watt: g.unitCount > 0 ? Math.round(g.totalWatt / g.unitCount) : 0,
           unit_count: g.unitCount,
           user_count: g.userIds.size,
@@ -78,13 +87,29 @@ export function useDeviceCatalog() {
     const { data, error: err } = await supabase
       .from('saved_recommendations')
       .select(
-        'id, current_value, suggested_value, potential_saving_amount, potential_saving_cost, created_at, profile_id, profiles(name, email)'
+        'id, current_value, suggested_value, potential_saving_amount, potential_saving_cost, budget_preference, created_at, profile_id, profiles(name, email)'
       )
       .eq('contributor_type', 'device')
       .ilike('contributor_name', name)
       .order('created_at', { ascending: false })
     if (err) throw err
     return data || []
+  }
+
+  // Hapus semua saved_recommendations yang contributor-nya device dengan nama ini.
+  // Dipakai saat device dinonaktifkan ATAU dihapus permanen — di kedua kasus itu
+  // riwayat rekomendasi yang mereferensikan device tsb harus ikut hilang dari
+  // sisi user, bukan cuma disembunyikan. ilike dipakai supaya gak kepeleset
+  // masalah beda casing/spasi antara nama di 'devices' vs contributor_name di
+  // 'saved_recommendations' (tabel ini gak diubah sama sekali, cuma query
+  // delete biasa lewat kolom yang sudah ada).
+  async function deleteRecommendationsForDevice(name) {
+    const { error: err } = await supabase
+      .from('saved_recommendations')
+      .delete()
+      .eq('contributor_type', 'device')
+      .ilike('contributor_name', name)
+    if (err) throw err
   }
 
   async function updateDevice(name, payload) {
@@ -102,20 +127,57 @@ export function useDeviceCatalog() {
     }
   }
 
-
-  // gak pernah hapus baris beneran.
-  async function deleteDevice(name) {
+  // Soft-delete/restore semua row 'devices' dengan nama yang sama.
+  // 'inactive'  -> deleted_at diisi timestamp sekarang, row TETAP ADA di DB.
+  //                Riwayat rekomendasi ('saved_recommendations') milik semua
+  //                user untuk device ini ikut DIHAPUS PERMANEN — bukan cuma
+  //                disembunyikan. Ini gak reversible: aktifin lagi devicenya
+  //                gak bakal ngembaliin riwayat yang udah kehapus.
+  // 'active'    -> deleted_at dikosongkan lagi (null), data device balik utuh
+  //                persis seperti sebelumnya. Riwayat rekomendasi TIDAK
+  //                dikembalikan (memang sudah terhapus permanen saat dinonaktifkan).
+  // Ini yang dipakai dropdown status Aktif/Nonaktif di tabel.
+  async function setDeviceActiveStatus(name, status) {
     error.value = ''
     try {
-      const { error: err } = await supabase
-        .from('devices')
-        .update({ status: 'inactive' })
-        .ilike('name', name)
+      const payload = {
+        status,
+        deleted_at: status === 'inactive' ? new Date().toISOString() : null,
+      }
+      const { error: err } = await supabase.from('devices').update(payload).ilike('name', name)
       if (err) throw err
-      catalog.value = catalog.value.filter((d) => d.name !== name)
+      if (status === 'inactive') {
+        await deleteRecommendationsForDevice(name)
+      }
+      await fetchCatalog()
     } catch (err) {
-      error.value = err.message || 'Gagal menghapus data perangkat.'
+      error.value = err.message || 'Gagal memperbarui status perangkat.'
       throw err
+    }
+  }
+
+  // Dipanggil dari tombol "Hapus" di menu titik tiga.
+  // Menghapus permanen semua baris 'devices' dengan nama yang sama dari
+  // database, SEKALIGUS semua 'saved_recommendations' milik semua user yang
+  // mereferensikan device ini. Tidak bisa dikembalikan sama sekali. Kalau
+  // cuma mau sembunyikan sementara dan masih bisa dipulihkan (device-nya,
+  // bukan riwayatnya), pakai setDeviceActiveStatus(name, 'inactive') lewat
+  // dropdown status, bukan fungsi ini — tapi perlu diingat, riwayat
+  // rekomendasi tetap ikut kehapus permanen di kedua kasus (nonaktif maupun
+  // hapus), sesuai behavior yang diminta.
+  async function deleteDevice(name) {
+    saving.value = true
+    error.value = ''
+    try {
+      await deleteRecommendationsForDevice(name)
+      const { error: err } = await supabase.from('devices').delete().ilike('name', name)
+      if (err) throw err
+      await fetchCatalog()
+    } catch (err) {
+      error.value = err.message || 'Gagal menghapus perangkat.'
+      throw err
+    } finally {
+      saving.value = false
     }
   }
 
@@ -127,7 +189,9 @@ export function useDeviceCatalog() {
     fetchCatalog,
     fetchDeviceDetail,
     fetchDeviceRecommendations,
+    deleteRecommendationsForDevice,
     updateDevice,
+    setDeviceActiveStatus,
     deleteDevice,
   }
 }
