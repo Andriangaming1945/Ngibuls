@@ -13,16 +13,15 @@ import {
   LogOut,
 } from 'lucide-vue-next'
 
-// activeKey opsional: kalau parent/layout mengontrol menu aktif (misal lewat
-// scrollspy di HomeView), tinggal bind prop ini. Kalau tidak dikasih, Sidebar
-// tetap punya state aktif sendiri berdasarkan menu terakhir yang diklik.
+// activeKey dipakai untuk halaman yang bukan bagian dari hash routing di '/'
+// (misalnya halaman Profil punya route sendiri). Kalau tidak dikasih,
+// active menu otomatis ditentukan dari route.hash.
 const props = defineProps({
   activeKey: {
     type: String,
-    default: 'dashboard',
+    default: null,
   },
 })
-const emit = defineEmits(['change-view'])
 
 const route = useRoute()
 const router = useRouter()
@@ -35,31 +34,19 @@ onMounted(() => {
   initAuth?.()
 })
 
-// PENTING: menu utama (Dashboard/Analisis/Simulasi/Rekomendasi) TIDAK pakai
-// Vue Router / hash lagi. "target" adalah id section di HomeView yang sama,
-// dituju lewat scrollIntoView (lihat selectView di bawah).
 const siteNavItems = [
-  { key: 'dashboard', label: 'Dashboard', target: 'dashboard', icon: LayoutDashboard },
-  { key: 'analisis', label: 'Analisis', target: 'analisis', icon: BarChart3 },
-  { key: 'simulasi', label: 'Simulasi', target: 'simulasi', icon: Calculator },
-  { key: 'rekomendasi', label: 'Rekomendasi', target: 'rekomendasi', icon: Lightbulb },
+  { key: 'dashboard', label: 'Dashboard', hash: '#dashboard', icon: LayoutDashboard },
+  { key: 'analisis', label: 'Analisis', hash: '#analisis', icon: BarChart3 },
+  { key: 'simulasi', label: 'Simulasi', hash: '#simulasi', icon: Calculator },
+  { key: 'rekomendasi', label: 'Rekomendasi', hash: '#rekomendasi', icon: Lightbulb },
 ]
 
-// State aktif lokal, disinkronkan dengan prop activeKey kalau parent
-// mengontrolnya (misal lewat scrollspy). Kalau tidak, ikut klik terakhir.
-const localActiveKey = ref(props.activeKey)
-watch(
-  () => props.activeKey,
-  (val) => {
-    if (val) localActiveKey.value = val
-  }
-)
-
-function isActive(key) {
-  return localActiveKey.value === key
+function isActive(key, hash) {
+  if (props.activeKey) return props.activeKey === key
+  return route.hash === hash
 }
 
-const isProfilActive = computed(() => route.path === '/profile')
+const isProfilActive = computed(() => isActive('profil', null) || route.path === '/profile')
 
 const isSidebarOpen = ref(false)
 
@@ -76,23 +63,6 @@ watch(isSidebarOpen, (open) => {
 onUnmounted(() => {
   document.body.style.overflow = ''
 })
-
-// Navigasi antar-section dalam SATU halaman. Tidak ada perubahan route/URL,
-// tidak ada reload, HomeView tidak di-render ulang.
-function selectView(key, target) {
-  localActiveKey.value = key
-  emit('change-view', key)
-
-  const element = document.getElementById(target)
-  if (element) {
-    element.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    })
-  }
-
-  closeSidebar()
-}
 
 const initial = () => (profile.value?.name || profile.value?.email || '?').trim().charAt(0).toUpperCase()
 
@@ -158,19 +128,19 @@ async function handleLogout() {
 
     <nav class="mt-8 flex-1 space-y-1">
       <p class="px-3 text-xs font-semibold uppercase tracking-wider text-white/40">Menu</p>
-      <button
+      <router-link
         v-for="item in siteNavItems"
         :key="item.key"
-        type="button"
-        @click="selectView(item.key, item.target)"
-        class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-white/55 transition-all duration-200"
-        :class="isActive(item.key)
+        :to="{ path: '/', hash: item.hash }"
+        @click="closeSidebar"
+        class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/55 transition-all duration-200"
+        :class="isActive(item.key, item.hash)
           ? 'bg-[#16A34A] text-white shadow-[0_2px_10px_-2px_rgba(22,163,74,0.6)]'
           : 'hover:text-[#4ADE80]'"
       >
         <component :is="item.icon" class="h-4.5 w-4.5 shrink-0" />
         {{ item.label }}
-      </button>
+      </router-link>
 
       <p class="px-3 pt-5 text-xs font-semibold uppercase tracking-wider text-white/40">Akun</p>
       <router-link

@@ -9,7 +9,7 @@ import { useAuth } from '@/composables/useAuth'
 const menuItems = [
   { key: 'dashboard', label: 'Dashboard', target: 'dashboard' },
   { key: 'analisis', label: 'Analisis', target: 'analisis' },
-  { key: 'simulasi', label: 'Simulasi', target: 'solution' },
+  { key: 'simulasi', label: 'Solution', target: 'solution' },
   { key: 'rekomendasi', label: 'Rekomendasi', target: 'rekomendasi' },
 ]
 
