@@ -8,6 +8,18 @@ import PotentialSavingSection from './PotentialSavingSection.vue'
 import backgroundImg from '../assets/img/background.jpeg'
 import Footer from '../components/Footer.vue'
 import { Zap, ArrowRight, PlayCircle } from 'lucide-vue-next'
+
+// Scroll halus ke section "Simulasi" (id="simulasi") di halaman yang sama.
+// Tidak mengubah URL, tidak pakai Vue Router.
+function goToSimulasi() {
+  const element = document.getElementById('solution')
+  if (element) {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  }
+}
 </script>
 
 <template>
@@ -121,11 +133,15 @@ import { Zap, ArrowRight, PlayCircle } from 'lucide-vue-next'
             </p>
 
             <div class="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button class="group inline-flex items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(22,163,74,0.6)] transition-colors hover:bg-[#128a3e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16A34A]">
+              <button
+                type="button"
+                @click="goToSimulasi"
+                class="group inline-flex items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(22,163,74,0.6)] transition-colors hover:bg-[#128a3e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16A34A]"
+              >
                 Mulai Sekarang
                 <ArrowRight class="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
-              
+
             </div>
 
             <div class="mt-8 flex items-center gap-2 text-xs font-semibold tracking-wide text-white/70">

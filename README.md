@@ -203,3 +203,140 @@ hematlistrik
 └─ vite.config.js
 
 ```
+```
+hematlistrik
+├─ .env
+├─ README.md
+├─ index.html
+├─ jsconfig.json
+├─ package-lock.json
+├─ package.json
+├─ public
+│  ├─ con.png
+│  ├─ favicon.ico
+│  └─ icon.png
+├─ src
+│  ├─ App.vue
+│  ├─ assets
+│  │  ├─ img
+│  │  │  └─ background.jpeg
+│  │  └─ main.css
+│  ├─ components
+│  │  ├─ Footer.vue
+│  │  ├─ ForgotPassword.vue
+│  │  ├─ Login.vue
+│  │  ├─ Navbar.vue
+│  │  ├─ Registrasi.vue
+│  │  ├─ ResetPassword.vue
+│  │  ├─ SaveHistoryBanner.vue
+│  │  ├─ admin
+│  │  │  ├─ Dashboard
+│  │  │  │  ├─ Activityprioritylist.vue
+│  │  │  │  ├─ Categorybreakdown.vue
+│  │  │  │  ├─ Dashboardstatcard.vue
+│  │  │  │  ├─ Recentactivitylist.vue
+│  │  │  │  └─ dashboardmin.vue
+│  │  │  ├─ Managementdata
+│  │  │  │  ├─ CategoryBadge.vue
+│  │  │  │  ├─ DataManagement.vue
+│  │  │  │  ├─ DeleteConfirmModal.vue
+│  │  │  │  ├─ DeviceAvatar.vue
+│  │  │  │  ├─ DeviceCatalogFormModal.vue
+│  │  │  │  ├─ DeviceCatalogTable.vue
+│  │  │  │  ├─ DeviceCatalogToolbar.vue
+│  │  │  │  ├─ DeviceDetailModal.vue
+│  │  │  │  ├─ PerangkatListrikTab.vue
+│  │  │  │  └─ StatusBadge.vue
+│  │  │  ├─ Sidebarmin.vue
+│  │  │  ├─ laporandata
+│  │  │  │  ├─ DeleteConfirmModal.vue
+│  │  │  │  ├─ Laporan.vue
+│  │  │  │  ├─ Laporandetailmodal.vue
+│  │  │  │  ├─ Laporanhistorytable.vue
+│  │  │  │  └─ Laporantoolbar.vue
+│  │  │  ├─ pengaturan
+│  │  │  │  ├─ KategoriDetailModal.vue
+│  │  │  │  ├─ KategoriFormModal.vue
+│  │  │  │  ├─ Recommendationhistory.vue
+│  │  │  │  ├─ RekomendasiDetailModal.vue
+│  │  │  │  ├─ RekomendasiFormModal.vue
+│  │  │  │  └─ pengaturan.vue
+│  │  │  └─ profilemanage
+│  │  │     ├─ DeleteUserModal.vue
+│  │  │     ├─ ProfileManagement.vue
+│  │  │     ├─ UserFormModal.vue
+│  │  │     ├─ UsersCardList.vue
+│  │  │     ├─ UsersHeader.vue
+│  │  │     ├─ UsersPagination.vue
+│  │  │     ├─ UsersTable.vue
+│  │  │     └─ UsersToolbar.vue
+│  │  ├─ profile
+│  │  │  ├─ Basicinfoform.vue
+│  │  │  ├─ Profileavatarcard.vue
+│  │  │  ├─ Recommendationhistory.vue
+│  │  │  └─ profile.vue
+│  │  ├─ sidebar.vue
+│  │  └─ user
+│  │     ├─ Analysisresultcard.vue
+│  │     ├─ Deviceinputcard.vue
+│  │     ├─ Habitinputcard.vue
+│  │     ├─ Recommendationcard.vue
+│  │     ├─ Simulationcard.vue
+│  │     └─ Solutionsection.vue
+│  ├─ composables
+│  │  ├─ Energycalculations.js
+│  │  ├─ Useauth.js
+│  │  ├─ Useautorecommendations.js
+│  │  ├─ Usedevicecategories.js
+│  │  ├─ Useexportlog.js
+│  │  ├─ Usengibulsdata.js
+│  │  ├─ Usesavedrecommendations.js
+│  │  ├─ Useusers.js
+│  │  ├─ useAdminRecommendations.js
+│  │  ├─ useDeviceCatalog.js
+│  │  ├─ useRecommendationRules.js
+│  │  └─ useScrollReveal.js
+│  ├─ lib
+│  │  └─ supabase.js
+│  ├─ main.js
+│  ├─ router
+│  │  └─ index.js
+│  ├─ utils
+│  │  ├─ Buildexportexcel.js
+│  │  ├─ Buildexportpdf.js
+│  │  ├─ Pdfexporthelpers.js
+│  │  └─ deviceCategoryMap.js
+│  └─ view
+│     ├─ Authcallbackview.vue
+│     ├─ ContextSection.vue
+│     ├─ HomeView.vue
+│     ├─ Mengubah.vue
+│     ├─ PotentialSavingSection.vue
+│     ├─ Problemssection.vue
+│     └─ admin
+│        └─ adminlayout.vue
+├─ supabase
+│  ├─ .temp
+│  │  ├─ .supabase-output-admin-create-user-Jv3cS9
+│  │  ├─ cli-latest
+│  │  ├─ gotrue-version
+│  │  ├─ linked-project.json
+│  │  ├─ pooler-url
+│  │  ├─ postgres-version
+│  │  ├─ project-ref
+│  │  ├─ rest-version
+│  │  ├─ storage-migration
+│  │  └─ storage-version
+│  ├─ config.toml
+│  └─ functions
+│     ├─ admin-create-user
+│     │  └─ index.ts
+│     ├─ admin-delete-user
+│     │  └─ index.ts
+│     └─ create-user
+│        ├─ .npmrc
+│        ├─ deno.json
+│        └─ index.ts
+└─ vite.config.js
+
+```
