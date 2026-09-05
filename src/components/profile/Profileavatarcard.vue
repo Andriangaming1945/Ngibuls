@@ -19,6 +19,27 @@ function pickAvatar() {
   avatarInput.value?.click()
 }
 
+// Ubah error mentah dari Supabase jadi pesan yang lebih jelas untuk user,
+// sambil tetap log versi aslinya ke console supaya gampang di-debug.
+function resolveAvatarErrorMessage(err) {
+  const raw = err?.message || err?.error_description || ''
+  const lower = raw.toLowerCase()
+
+  if (lower.includes('bucket not found')) {
+    return 'Storage bucket "avatars" belum dibuat di Supabase. Buat dulu buckets-nya (lihat instruksi setup).'
+  }
+  if (lower.includes('row-level security') || lower.includes('permission') || lower.includes('policy')) {
+    return 'Tidak punya izin upload ke storage. Cek RLS policy bucket "avatars" di Supabase.'
+  }
+  if (lower.includes('exceeded') || lower.includes('too large') || lower.includes('payload')) {
+    return 'Ukuran foto terlalu besar untuk diunggah.'
+  }
+  if (raw) {
+    return `Gagal mengunggah foto: ${raw}`
+  }
+  return 'Gagal mengunggah foto. Coba lagi ya.'
+}
+
 async function handleAvatarChange(e) {
   const file = e.target.files?.[0]
   if (!file) return
@@ -54,7 +75,10 @@ async function handleAvatarChange(e) {
     const updated = await updateProfile({ avatar_url: avatarUrl })
     profile.value = { ...profile.value, ...updated }
   } catch (err) {
-    avatarError.value = 'Gagal mengunggah foto. Coba lagi ya.'
+    // Log error asli ke console browser (F12 > Console) supaya kelihatan
+    // penyebab sebenarnya, bukan cuma pesan generik di UI.
+    console.error('[ProfileAvatarCard] Gagal upload avatar:', err)
+    avatarError.value = resolveAvatarErrorMessage(err)
   } finally {
     avatarUploading.value = false
     if (avatarInput.value) avatarInput.value.value = ''
