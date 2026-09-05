@@ -221,7 +221,7 @@ async function handleGoogleLogin() {
               />
               Ingat saya
             </label>
-            <a href="#" class="text-sm font-medium text-[#16A34A] hover:underline">
+            <a href="/forgot-password" class="text-sm font-medium text-[#16A34A] hover:underline">
               Lupa password?
             </a>
           </div>

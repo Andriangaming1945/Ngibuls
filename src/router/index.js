@@ -36,6 +36,19 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
 
+     {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('../components/ForgotPassword.vue'),
+      meta: { guestOnly: true }
+    },
+
+    {
+  path: '/reset-password',
+  name: 'reset-password',
+  component: () => import('../components/ResetPassword.vue'),
+},
+
     {
       path: '/auth/callback',
       name: 'auth-callback',

@@ -1,23 +1,27 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { Menu, X, ChevronDown, LogOut, User, ShieldCheck } from 'lucide-vue-next'
 import { useAuth } from '@/composables/useAuth'
 
+// PENTING: menu utama (Dashboard/Analisis/Simulasi/Rekomendasi) TIDAK pakai
+// Vue Router / hash lagi. Ini murni scroll ke id section di HomeView yang sama.
 const menuItems = [
-  { label: 'Dashboard', href: '#dashboard' },
-  { label: 'Analisis', href: '#analisis' },
-  { label: 'Simulasi', href: '#simulasi' },
-  { label: 'Rekomendasi', href: '#rekomendasi' },
+  { key: 'dashboard', label: 'Dashboard', target: 'dashboard' },
+  { key: 'analisis', label: 'Analisis', target: 'analisis' },
+  { key: 'simulasi', label: 'Simulasi', target: 'solution' },
+  { key: 'rekomendasi', label: 'Rekomendasi', target: 'rekomendasi' },
 ]
 
-const route = useRoute()
 const router = useRouter()
 const { user, profile, authLoading, initAuth, logout } = useAuth()
 
 const isMobileMenuOpen = ref(false)
 const isUserMenuOpen = ref(false)
 const isScrolled = ref(false)
+const activeSection = ref(menuItems[0].target)
+
+let sectionObserver = null
 
 function handleScroll() {
   isScrolled.value = window.scrollY > 12
@@ -27,14 +31,42 @@ function handleScroll() {
   }
 }
 
+function setupSectionObserver() {
+  const sections = menuItems
+    .map((item) => document.getElementById(item.target))
+    .filter(Boolean)
+
+  if (!sections.length) return
+
+  sectionObserver?.disconnect()
+  sectionObserver = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+
+      if (visible[0]) {
+        activeSection.value = visible[0].target.id
+      }
+    },
+    { rootMargin: '-45% 0px -45% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] }
+  )
+
+  sections.forEach((section) => sectionObserver.observe(section))
+}
+
 onMounted(() => {
   initAuth()
   handleScroll()
   window.addEventListener('scroll', handleScroll, { passive: true })
+  // requestAnimationFrame supaya semua section child (Context/Problems/Solution/dll)
+  // sudah pasti ke-mount duluan sebelum kita cari elemennya di DOM.
+  requestAnimationFrame(setupSectionObserver)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  sectionObserver?.disconnect()
 })
 
 const isLoggedIn = computed(() => !authLoading.value && !!user.value && !!profile.value)
@@ -42,7 +74,10 @@ const isAdmin = computed(() => profile.value?.role === 'admin')
 const displayName = computed(() => profile.value?.name || profile.value?.email || '')
 const initial = computed(() => displayName.value.trim().charAt(0).toUpperCase() || '?')
 const avatarUrl = computed(() => profile.value?.avatar_url || '')
-const activeHref = computed(() => route.hash || menuItems[0].href)
+
+function isActive(target) {
+  return activeSection.value === target
+}
 
 function closeMobileMenu() {
   isMobileMenuOpen.value = false
@@ -54,6 +89,19 @@ function toggleMobileMenu() {
 
 function toggleUserMenu() {
   isUserMenuOpen.value = !isUserMenuOpen.value
+}
+
+// Scroll antar-section dalam SATU halaman. Tidak ada perubahan URL/route.
+function goToSection(target) {
+  const element = document.getElementById(target)
+  if (element) {
+    activeSection.value = target
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  }
+  closeMobileMenu()
 }
 
 async function handleLogout() {
@@ -78,25 +126,26 @@ async function handleLogout() {
         class="flex items-center justify-between transition-all duration-300"
         :class="isScrolled ? 'h-16' : 'h-20'"
       >
-        <router-link to="/" class="flex items-center gap-2.5 text-xl font-bold tracking-tight">
-          <span>
-            <span class="text-white">Ngi</span><span class="text-[#4ADE80]">buls</span>
-          </span>
-        </router-link>
+      <router-link to="/" class="flex items-center gap-2.5 text-xl font-bold tracking-tight">
+  <img src="/con.png" alt="Ngibuls Logo" class="w-8 h-8 object-contain" />
+  <span>
+    <span class="text-white">Ngi</span><span class="text-[#4ADE80]">buls</span>
+  </span>
+</router-link>
 
         <nav class="hidden md:block">
           <ul class="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1">
-            <li v-for="item in menuItems" :key="item.label">
-              <router-link
-                :to="{ path: '/', hash: item.href }"
-                @click="closeMobileMenu"
+            <li v-for="item in menuItems" :key="item.key">
+              <button
+                type="button"
+                @click="goToSection(item.target)"
                 class="block rounded-full px-4 py-2 text-sm font-medium transition-all duration-200"
-                :class="activeHref === item.href
+                :class="isActive(item.target)
                   ? 'bg-[#16A34A] text-white shadow-[0_2px_10px_-2px_rgba(22,163,74,0.6)]'
                   : 'text-white/55 hover:text-white'"
               >
                 {{ item.label }}
-              </router-link>
+              </button>
             </li>
           </ul>
         </nav>
@@ -200,15 +249,15 @@ async function handleLogout() {
     >
       <div v-if="isMobileMenuOpen" class="border-t border-white/10 bg-[#0B1220] md:hidden">
         <ul class="flex flex-col gap-0.5 px-4 py-3">
-          <li v-for="item in menuItems" :key="item.label">
-            <router-link
-              :to="{ path: '/', hash: item.href }"
-              @click="closeMobileMenu"
-              class="block rounded-lg px-3.5 py-3 text-sm font-medium transition-colors duration-200"
-              :class="activeHref === item.href ? 'bg-[#16A34A]/10 text-[#4ADE80]' : 'text-white/70 hover:bg-white/5'"
+          <li v-for="item in menuItems" :key="item.key">
+            <button
+              type="button"
+              @click="goToSection(item.target)"
+              class="block w-full rounded-lg px-3.5 py-3 text-left text-sm font-medium transition-colors duration-200"
+              :class="isActive(item.target) ? 'bg-[#16A34A]/10 text-[#4ADE80]' : 'text-white/70 hover:bg-white/5'"
             >
               {{ item.label }}
-            </router-link>
+            </button>
           </li>
         </ul>
 

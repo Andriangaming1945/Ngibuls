@@ -279,7 +279,7 @@ async function runAnalysis() {
 </script>
 
 <template>
-  <section class="bg-[#F8FAFC] px-4 py-20 sm:px-6 lg:px-8">
+  <section id="solution" class="bg-[#F8FAFC] px-4 py-20 sm:px-6 lg:px-8">
     <div class="mx-auto max-w-[1280px]">
       <!-- Header -->
       <div class="mx-auto max-w-2xl text-center">

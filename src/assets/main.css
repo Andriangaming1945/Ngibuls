@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
 html {
-     scroll-behavior: smooth;
-   }
+  scroll-behavior: smooth;
+}
+
+html,
+body,
+* {
+  cursor: url('/con.png') 4 4, auto !important;
+}
+
+a,
+button,
+input,
+select,
+textarea,
+[role="button"] {
+  cursor: url('/con.png') 4 4, pointer !important;
+}

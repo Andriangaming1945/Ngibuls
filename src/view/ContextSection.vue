@@ -6,7 +6,7 @@ const { target, isVisible } = useScrollReveal()
 </script>
 
 <template>
-  <section class="relative bg-[#F8FAFC]">
+  <section  id="analisis" class="relative bg-[#F8FAFC]">
     <div
       ref="target"
       class="relative mx-auto max-w-[1280px] px-4 pb-24 pt-16 transition-all duration-700 ease-out sm:px-6 sm:pt-20 lg:px-8 lg:pb-32 lg:pt-24"

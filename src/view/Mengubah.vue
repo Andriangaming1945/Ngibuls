@@ -33,7 +33,7 @@ const costSources = [
 </script>
 
 <template>
-  <section class="relative bg-[#F8FAFC]">
+  <section id="rekomendasi" class="relative bg-[#F8FAFC]">
     <div
       ref="target"
       class="relative mx-auto max-w-[1280px] px-4 py-20 transition-all duration-700 ease-out sm:py-24"

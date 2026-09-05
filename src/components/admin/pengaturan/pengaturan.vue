@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Search, Plus, Eye, Pencil, Trash2 } from 'lucide-vue-next'
 import DeleteConfirmModal from '@/components/admin/laporandata/DeleteConfirmModal.vue'
 import RekomendasiFormModal from './RekomendasiFormModal.vue'
@@ -24,7 +24,10 @@ const {
   deleteRecommendation,
 } = useSavedRecommendations()
 
-// ---------- Kategori ----------
+// ---------- Kategori: definisi (nama/digunakan untuk/deskripsi) dikelola manual
+// lewat CRUD, TAPI jumlah data selalu dihitung otomatis dari devices asli
+// (lihat kategoriGabungan di bawah) — bukan field manual, jadi gak perlu
+// di-input satu-satu lewat SQL. ----------
 const {
   categories: kategoriList,
   loading: katLoading,
@@ -143,20 +146,71 @@ async function confirmDeleteRek() {
   }
 }
 
-// ========== TAB 2: KATEGORI (search + filter + CRUD) ==========
+// ========== TAB 2: KATEGORI ==========
+// Jumlah perangkat per kategori dihitung dari data 'devices' asli (device
+// yang sudah dinonaktifkan/dihapus dikecualikan), BUKAN dari field manual
+// di tabel device_categories — jadi kategori seperti "Pendingin" otomatis
+// muncul dengan angka yang benar tanpa perlu di-insert satu-satu lewat SQL.
+const deviceCountByCategory = computed(() => {
+  const map = new Map()
+  for (const d of deviceCatalog.value) {
+    if (d.deleted_at) continue
+    map.set(d.category, (map.get(d.category) || 0) + 1)
+  }
+  return map
+})
+
+// Auto-registrasi kategori yang kedeteksi dari device tapi belum ada
+// row-nya di device_categories — supaya dia langsung punya id asli
+// (bukan cuma tampilan sementara), dan tombol Edit/Hapus bisa jalan
+// normal tanpa perlu insert manual lewat SQL.
+let autoRegisterDone = false
+
+async function autoRegisterMissingCategories() {
+  if (autoRegisterDone) return
+  const registeredNames = new Set(kategoriList.value.map((k) => k.name))
+  const missingNames = [...new Set(deviceCatalog.value.map((d) => d.category))].filter(
+    (name) => name && !registeredNames.has(name)
+  )
+
+  if (missingNames.length === 0) {
+    autoRegisterDone = true
+    return
+  }
+
+  try {
+    for (const name of missingNames) {
+      await createCategory({ name, used_for: 'Perangkat Listrik' })
+    }
+    await fetchCategories()
+  } finally {
+    autoRegisterDone = true
+  }
+}
+
+watch([kategoriList, deviceCatalog], () => {
+  if (kategoriList.value.length || deviceCatalog.value.length) {
+    autoRegisterMissingCategories()
+  }
+})
+
+// Gabungan: kategori yang terdaftar di device_categories, jumlah datanya
+// selalu diambil dari device asli (bukan field manual).
+const kategoriGabungan = computed(() => {
+  return kategoriList.value
+    .map((k) => ({
+      ...k,
+      data_count: deviceCountByCategory.value.get(k.name) || 0,
+    }))
+    .sort((a, b) => b.data_count - a.data_count)
+})
+
 const katSearch = ref('')
-const katStatusFilter = ref('')
 
 const filteredKategori = computed(() => {
-  let rows = kategoriList.value
-  if (katStatusFilter.value) {
-    rows = rows.filter((k) => k.status === katStatusFilter.value)
-  }
-  if (katSearch.value.trim()) {
-    const term = katSearch.value.trim().toLowerCase()
-    rows = rows.filter((k) => k.name.toLowerCase().includes(term))
-  }
-  return rows
+  if (!katSearch.value.trim()) return kategoriGabungan.value
+  const term = katSearch.value.trim().toLowerCase()
+  return kategoriGabungan.value.filter((k) => k.name.toLowerCase().includes(term))
 })
 
 // --- Tambah / Edit ---
@@ -369,10 +423,10 @@ const filteredDeviceCatalog = computed(() => {
       </div>
     </div>
 
-    <!-- TAB 2: KATEGORI (CRUD) -->
+    <!-- TAB 2: KATEGORI (CRUD, jumlah data selalu otomatis dari devices) -->
     <div v-else-if="activeTab === 'kategori'" class="mt-5">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div>
           <div class="relative">
             <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]" />
             <input
@@ -382,7 +436,7 @@ const filteredDeviceCatalog = computed(() => {
               class="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#16A34A] focus:outline-none focus:ring-2 focus:ring-[#16A34A]/20 sm:w-64"
             />
           </div>
-        
+          <p class="mt-1.5 text-xs text-[#94A3B8]">Jumlah data dihitung otomatis dari perangkat di Manajemen Data.</p>
         </div>
 
         <button
@@ -402,16 +456,15 @@ const filteredDeviceCatalog = computed(() => {
               <th class="px-4 py-3">Nama Kategori</th>
               <th class="px-4 py-3">Digunakan Untuk</th>
               <th class="px-4 py-3">Jumlah Data</th>
-             
               <th class="px-4 py-3 text-right">Aksi</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
             <tr v-if="katLoading">
-              <td colspan="5" class="px-4 py-6 text-center text-[#64748B]">Memuat kategori...</td>
+              <td colspan="4" class="px-4 py-6 text-center text-[#64748B]">Memuat kategori...</td>
             </tr>
             <tr v-else-if="filteredKategori.length === 0">
-              <td colspan="5" class="px-4 py-6 text-center text-[#64748B]">Tidak ada kategori ditemukan.</td>
+              <td colspan="4" class="px-4 py-6 text-center text-[#64748B]">Tidak ada kategori ditemukan.</td>
             </tr>
             <tr v-for="item in filteredKategori" :key="item.id" class="text-[#0F172A]">
               <td class="px-4 py-3 font-medium">{{ item.name }}</td>
@@ -424,7 +477,6 @@ const filteredDeviceCatalog = computed(() => {
                 </span>
               </td>
               <td class="px-4 py-3 text-[#64748B]">{{ item.data_count }}</td>
-            
               <td class="px-4 py-3 text-right">
                 <div class="flex justify-end gap-2">
                   <button
@@ -487,7 +539,6 @@ const filteredDeviceCatalog = computed(() => {
                 <th class="px-4 py-3">Rata-rata Watt</th>
                 <th class="px-4 py-3">Jumlah Unit</th>
                 <th class="px-4 py-3">Jumlah Pengguna</th>
-                
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -503,7 +554,6 @@ const filteredDeviceCatalog = computed(() => {
                 <td class="px-4 py-3">{{ item.watt }} W</td>
                 <td class="px-4 py-3">{{ item.unit_count }} {{ item.unit }}</td>
                 <td class="px-4 py-3">{{ item.user_count }}</td>
-    
               </tr>
             </tbody>
           </table>

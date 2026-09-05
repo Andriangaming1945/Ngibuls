@@ -14,7 +14,7 @@ import { Zap, ArrowRight, PlayCircle } from 'lucide-vue-next'
   <div class="min-h-screen bg-[#0F172A]">
     <Navbar />
 
-    <section class="relative min-h-screen overflow-hidden">
+    <section  id="dashboard" class="relative min-h-screen overflow-hidden">
       <!-- Full-bleed background: forced to true viewport width via left-1/2 + w-screen,
            so it always covers edge-to-edge no matter how wide any parent/ancestor is. -->
       <div class="absolute inset-y-0 left-1/2 z-0 w-screen -translate-x-1/2">

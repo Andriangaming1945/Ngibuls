@@ -38,7 +38,7 @@ const year = new Date().getFullYear()
             </span>
           </div>
           <p class="mt-4 text-sm leading-relaxed text-slate-400">
-            Bantu kamu tahu ke mana biaya kostmu pergi — dan apa yang paling
+            Bantu kamu tahu ke mana biaya energimu pergi — dan apa yang paling
             masuk akal untuk diubah.
           </p>
 
@@ -100,7 +100,7 @@ const year = new Date().getFullYear()
           &copy; {{ year }} Ngibuls. All rights reserved.
         </p>
         <p class="text-sm text-slate-500">
-          Dibuat untuk penghuni kost yang ingin tahu, bukan cuma bayar.
+          Dibuat untuk penghuni rumah, kost, apartement dan kontarakan yang ingin tahu, bukan cuma bayar.
         </p>
       </div>
     </div>
