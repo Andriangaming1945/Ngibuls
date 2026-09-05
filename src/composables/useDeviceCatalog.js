@@ -16,7 +16,7 @@ export function useDeviceCatalog() {
       // row yang sudah dinonaktifkan (soft-deleted), supaya bisa diaktifkan lagi.
       const { data, error: err } = await supabase
         .from('devices')
-        .select('id, name, watt, quantity, profile_id, updated_at, category, unit, status, deleted_at')
+        .select('id, name, watt, quantity, profile_id, updated_at, category, unit, deleted_at')
 
       if (err) throw err
 
@@ -28,7 +28,6 @@ export function useDeviceCatalog() {
             name: row.name,
             category: row.category || getCategoryForDevice(row.name),
             unit: row.unit || 'unit',
-            status: row.status || 'active',
             deletedAt: row.deleted_at,
             totalWatt: 0,
             unitCount: 0,
@@ -42,12 +41,11 @@ export function useDeviceCatalog() {
         g.totalWatt += watt * qty
         g.unitCount += qty
         if (row.profile_id) g.userIds.add(row.profile_id)
-        // Status/deleted_at representatif diambil dari row yang paling baru
+        // deleted_at representatif diambil dari row yang paling baru
         // diupdate, supaya konsisten dengan toggle terakhir yang dilakukan
         // admin untuk device ini.
         if (row.updated_at && (!g.lastUpdated || new Date(row.updated_at) >= new Date(g.lastUpdated))) {
           g.lastUpdated = row.updated_at
-          g.status = row.status || 'active'
           g.deletedAt = row.deleted_at
         }
       }
@@ -58,7 +56,10 @@ export function useDeviceCatalog() {
           name: g.name,
           category: getCategoryForDevice(g.name) !== 'Lainnya' ? getCategoryForDevice(g.name) : g.category,
           unit: g.unit,
-          status: g.status,
+          // status turunan, bukan kolom DB lagi — biar komponen lain yang
+          // masih baca `device.status` ('active'/'inactive') tetap jalan
+          // tanpa perlu diubah satu-satu.
+          status: g.deletedAt ? 'inactive' : 'active',
           deleted_at: g.deletedAt,
           watt: g.unitCount > 0 ? Math.round(g.totalWatt / g.unitCount) : 0,
           unit_count: g.unitCount,
@@ -83,7 +84,22 @@ export function useDeviceCatalog() {
     return data || []
   }
 
+  // Rekomendasi HANYA ditampilkan kalau device-nya lagi aktif (deleted_at
+  // IS NULL). Datanya sendiri tetap ada terus di 'saved_recommendations'
+  // apa pun kondisi device-nya — begitu device diaktifkan lagi
+  // (deleted_at dikosongkan), rekomendasi lama otomatis muncul lagi.
   async function fetchDeviceRecommendations(name) {
+    const { data: deviceRows, error: statusErr } = await supabase
+      .from('devices')
+      .select('deleted_at')
+      .ilike('name', name)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+    if (statusErr) throw statusErr
+
+    const isActive = !deviceRows?.[0]?.deleted_at
+    if (!isActive) return []
+
     const { data, error: err } = await supabase
       .from('saved_recommendations')
       .select(
@@ -97,12 +113,8 @@ export function useDeviceCatalog() {
   }
 
   // Hapus semua saved_recommendations yang contributor-nya device dengan nama ini.
-  // Dipakai saat device dinonaktifkan ATAU dihapus permanen — di kedua kasus itu
-  // riwayat rekomendasi yang mereferensikan device tsb harus ikut hilang dari
-  // sisi user, bukan cuma disembunyikan. ilike dipakai supaya gak kepeleset
-  // masalah beda casing/spasi antara nama di 'devices' vs contributor_name di
-  // 'saved_recommendations' (tabel ini gak diubah sama sekali, cuma query
-  // delete biasa lewat kolom yang sudah ada).
+  // HANYA dipakai saat device dihapus PERMANEN (deleteDevice), bukan saat
+  // dinonaktifkan biasa.
   async function deleteRecommendationsForDevice(name) {
     const { error: err } = await supabase
       .from('saved_recommendations')
@@ -116,7 +128,10 @@ export function useDeviceCatalog() {
     saving.value = true
     error.value = ''
     try {
-      const { error: err } = await supabase.from('devices').update(payload).ilike('name', name)
+      // 'status' dibuang dari payload kalau ada yang masih ngirim,
+      // soalnya kolomnya sudah tidak ada lagi di tabel devices.
+      const { status, ...rest } = payload
+      const { error: err } = await supabase.from('devices').update(rest).ilike('name', name)
       if (err) throw err
       await fetchCatalog()
     } catch (err) {
@@ -127,28 +142,21 @@ export function useDeviceCatalog() {
     }
   }
 
-  // Soft-delete/restore semua row 'devices' dengan nama yang sama.
-  // 'inactive'  -> deleted_at diisi timestamp sekarang, row TETAP ADA di DB.
-  //                Riwayat rekomendasi ('saved_recommendations') milik semua
-  //                user untuk device ini ikut DIHAPUS PERMANEN — bukan cuma
-  //                disembunyikan. Ini gak reversible: aktifin lagi devicenya
-  //                gak bakal ngembaliin riwayat yang udah kehapus.
-  // 'active'    -> deleted_at dikosongkan lagi (null), data device balik utuh
-  //                persis seperti sebelumnya. Riwayat rekomendasi TIDAK
-  //                dikembalikan (memang sudah terhapus permanen saat dinonaktifkan).
-  // Ini yang dipakai dropdown status Aktif/Nonaktif di tabel.
+  // Soft-delete/restore semua row 'devices' dengan nama yang sama, murni
+  // lewat kolom deleted_at (kolom status sudah dihapus dari DB).
+  // status: 'inactive' -> deleted_at diisi timestamp sekarang, row TETAP
+  //         ADA di DB. Riwayat rekomendasi di 'saved_recommendations' TIDAK
+  //         disentuh, cuma disembunyikan lewat fetchDeviceRecommendations().
+  // status: 'active'   -> deleted_at dikosongkan lagi (null). Riwayat
+  //         rekomendasi lama otomatis kelihatan lagi.
   async function setDeviceActiveStatus(name, status) {
     error.value = ''
     try {
       const payload = {
-        status,
         deleted_at: status === 'inactive' ? new Date().toISOString() : null,
       }
       const { error: err } = await supabase.from('devices').update(payload).ilike('name', name)
       if (err) throw err
-      if (status === 'inactive') {
-        await deleteRecommendationsForDevice(name)
-      }
       await fetchCatalog()
     } catch (err) {
       error.value = err.message || 'Gagal memperbarui status perangkat.'
@@ -158,13 +166,8 @@ export function useDeviceCatalog() {
 
   // Dipanggil dari tombol "Hapus" di menu titik tiga.
   // Menghapus permanen semua baris 'devices' dengan nama yang sama dari
-  // database, SEKALIGUS semua 'saved_recommendations' milik semua user yang
-  // mereferensikan device ini. Tidak bisa dikembalikan sama sekali. Kalau
-  // cuma mau sembunyikan sementara dan masih bisa dipulihkan (device-nya,
-  // bukan riwayatnya), pakai setDeviceActiveStatus(name, 'inactive') lewat
-  // dropdown status, bukan fungsi ini — tapi perlu diingat, riwayat
-  // rekomendasi tetap ikut kehapus permanen di kedua kasus (nonaktif maupun
-  // hapus), sesuai behavior yang diminta.
+  // database, SEKALIGUS semua 'saved_recommendations' yang mereferensikan
+  // device ini. Tidak bisa dikembalikan sama sekali.
   async function deleteDevice(name) {
     saving.value = true
     error.value = ''

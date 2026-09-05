@@ -143,18 +143,7 @@ async function handleLogout() {
         <span class="truncate">{{ item.label }}</span>
       </router-link>
 
-      <p class="px-3 pb-2 pt-6 text-xs font-semibold uppercase tracking-wider text-slate-500">Akun</p>
-      <router-link
-        to="/admin/profile"
-        @click="closeSidebar"
-        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
-        :class="isProfilActive
-          ? 'bg-emerald-600 text-white'
-          : 'text-slate-400 hover:bg-slate-800 hover:text-white'"
-      >
-        <User class="h-5 w-5 shrink-0" />
-        Profil
-      </router-link>
+     
     </nav>
 
     <div class="border-t border-slate-800 px-3 py-4 sm:px-4">

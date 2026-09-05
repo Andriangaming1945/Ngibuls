@@ -50,7 +50,7 @@ const router = createRouter({
         {
           path: 'dashboard',
           name: 'dashboardmin',
-          component: () => import('../view/admin/dashboardmin.vue'),
+          component: () => import('../components/admin/Dashboard/dashboardmin.vue'),
         },
         {
           path: 'Managementuser',
@@ -66,6 +66,13 @@ const router = createRouter({
           path: 'laporan',
           name: 'laporan',
           component: () => import('../components/admin/laporandata/Laporan.vue'),
+        },
+
+        {
+          path: 'pengaturan',
+          name: 'pengaturan',
+          component: () => import('../components/admin/pengaturan/pengaturan.vue'),
+      
         }
       ],
     }

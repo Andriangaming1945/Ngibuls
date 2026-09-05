@@ -113,7 +113,6 @@ function closeMenus() {
             <th class="px-5 py-3.5">Kategori</th>
             <th class="px-5 py-3.5">Daya Default</th>
             <th class="px-5 py-3.5">Satuan</th>
-            <th class="px-5 py-3.5">Status</th>
             <th class="px-5 py-3.5 text-right">Aksi</th>
           </tr>
         </thead>
@@ -208,28 +207,10 @@ function closeMenus() {
   <Teleport to="body">
     <div v-if="openStatusId || openMenuId" class="fixed inset-0 z-[9998]" @click="closeMenus"></div>
 
-    <div
-      v-if="openStatusId"
-      :style="statusMenuStyle"
-      class="w-64 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg"
-    >
-      <button
-        v-for="opt in statusOptions"
-        :key="opt.value"
-        type="button"
-        @click="selectStatus(devices.find((d) => d.id === openStatusId), opt.value)"
-        class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50"
-        :class="devices.find((d) => d.id === openStatusId)?.status === opt.value ? 'font-semibold text-[#0F172A]' : 'text-[#64748B]'"
-      >
-        <span class="h-1.5 w-1.5 rounded-full" :class="opt.dot"></span>
-        {{ opt.label }}
-      </button>
+  
+     
 
-      <!-- Penjelasan fungsi, biar admin paham konsekuensi sebelum pilih -->
-      <div class="border-t border-slate-100 bg-slate-50 px-3 py-2.5 text-[11px] leading-relaxed text-[#64748B]">
-        <span class="font-semibold text-[#0F172A]">Nonaktif:</span> perangkat disembunyikan dari pilihan user saat analisis, tapi data yang sudah tersimpan tetap ada di database — tidak terhapus. Bisa diaktifkan kembali kapan saja.
-      </div>
-    </div>
+     
 
     <div
       v-if="openMenuId"
