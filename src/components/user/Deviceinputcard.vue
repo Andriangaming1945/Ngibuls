@@ -12,13 +12,50 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['device-added', 'remove-device'])
-// pakai `user` (id sesi auth), bukan `profile` — profiles.id itu FK ke auth.users.id
-// jadi user.value.id selalu valid begitu user login, sedangkan profile row bisa
-// belum sempat ke-fetch pas form ini dipakai (itu penyebab profile_id null tadi)
 const { user } = useAuth()
 
 const mode = ref('manual')
 const submitting = ref(false)
+
+const DEVICE_NAME_MAP = {
+  laptop: 'Laptop',
+  tv: 'TV',
+  microwave: 'Microwave',
+  oven: 'Oven',
+  toaster: 'Toaster',
+  refrigerator: 'Kulkas',
+  'hair drier': 'Hair Dryer',
+  remote: 'Remote',
+  keyboard: 'Keyboard',
+  mouse: 'Mouse',
+  'cell phone': 'HP',
+  clock: 'Jam',
+}
+
+let cocoModelPromise = null
+function loadCocoModel() {
+  if (!cocoModelPromise) {
+    cocoModelPromise = Promise.all([
+      import('@tensorflow/tfjs'),
+      import('@tensorflow-models/coco-ssd'),
+    ]).then(([, cocoSsd]) => cocoSsd.load())
+  }
+  return cocoModelPromise
+}
+
+async function detectDeviceName(file) {
+  try {
+    const model = await loadCocoModel()
+    const bitmap = await createImageBitmap(file)
+    const predictions = await model.detect(bitmap)
+    if (!predictions.length) return ''
+    const top = predictions.reduce((a, b) => (b.score > a.score ? b : a))
+    return DEVICE_NAME_MAP[top.class] || ''
+  } catch (err) {
+    console.error('Gagal deteksi objek:', err)
+    return ''
+  }
+}
 
 function emptyForm() {
   return {
@@ -76,7 +113,6 @@ async function insertDevice(payload, errorRef) {
   submitting.value = false
 
   if (error) {
-    // log error asli ke console biar gampang debug kalau masih gagal
     console.error('Gagal insert device:', error)
     errorRef.value = error.message?.includes('violates')
       ? 'Data yang dikirim ada yang nggak valid. Cek lagi angka watt/jam/hari-nya ya.'
@@ -127,12 +163,18 @@ async function handleFileChange(e) {
   scanForm.value = null
 
   try {
-    const { createWorker } = await import('tesseract.js')
-    const worker = await createWorker('eng')
-    const { data } = await worker.recognize(file)
-    await worker.terminate()
+    const [detectedName, ocrData] = await Promise.all([
+      detectDeviceName(file),
+      (async () => {
+        const { createWorker } = await import('tesseract.js')
+        const worker = await createWorker('eng')
+        const { data } = await worker.recognize(file)
+        await worker.terminate()
+        return data
+      })(),
+    ])
 
-    const text = data.text || ''
+    const text = ocrData.text || ''
     const wattMatch = text.match(/(\d{2,5})\s?W\b/i)
     const voltMatch = text.match(/(\d{2,4})\s?V\b/i)
     const ampMatch = text.match(/(\d+(?:[.,]\d+)?)\s?A\b/i)
@@ -141,7 +183,7 @@ async function handleFileChange(e) {
 
     scanForm.value = {
       ...emptyForm(),
-      name: modelMatch ? modelMatch[1] : '',
+      name: detectedName || (modelMatch ? modelMatch[1] : ''),
       watt: wattMatch ? String(wattMatch[1]) : '',
       model: modelMatch ? modelMatch[1] : '',
       voltage: voltMatch ? String(voltMatch[1]) : '',
