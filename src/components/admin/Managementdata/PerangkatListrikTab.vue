@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { CheckCircle2 } from 'lucide-vue-next'
-import { useDeviceCatalog } from '@/composables/Usedevicecatalog'
+import { useDeviceCatalog } from '@/composables/useDeviceCatalog.js'
 import { useExportLog } from '@/composables/Useexportlog'
 import { buildExportPdf } from '@/utils/Buildexportpdf'
 import { downloadExportExcel } from '@/utils/Buildexportexcel'
