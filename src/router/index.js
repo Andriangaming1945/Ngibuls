@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../view/HomeView.vue'
 import Register from '../components/Registrasi.vue'
 import Login from '../components/Login.vue'
-import { useAuth } from '../composables/Useauth'
+import { useAuth } from '@/composables/useAuth.js'
 
 const router = createRouter({
   history: createWebHistory(),

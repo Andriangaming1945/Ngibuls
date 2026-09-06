@@ -1,9 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useExportLog } from '@/composables/Useexportlog.js'
-import LaporanToolbar from './LaporanToolbar.vue'
-import LaporanHistoryTable from './LaporanHistoryTable.vue'
-import LaporanDetailModal from './LaporanDetailModal.vue'
+import LaporanToolbar from './Laporantoolbar.vue'
+import LaporanHistoryTable from './Laporanhistorytable.vue'
+import LaporanDetailModal from './Laporandetailmodal.vue'
 import DeleteConfirmModal from './DeleteConfirmModal.vue'
 
 const { logs, loading, fetchExportLogs, deleteExportLog } = useExportLog()
