@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Zap, Eye, EyeOff, ShieldCheck, TrendingDown, Gauge, ArrowLeft } from 'lucide-vue-next'
-import { useAuth } from '../composables/Useauth'
+import { useAuth } from '../composables/useAuth'
 
 const router = useRouter()
 const { login, loginWithGoogle } = useAuth()

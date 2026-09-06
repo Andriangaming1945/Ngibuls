@@ -1,6 +1,6 @@
 <script setup>
 import { Clock, Loader2, Zap, TrendingDown } from 'lucide-vue-next'
-import { formatRupiah, formatTanggal, budgetPreferenceLabel } from '@/utils/Pdfexporthelpers.js'
+import { formatRupiah, formatTanggal, budgetPreferenceLabel } from '@/utils/pdfExportHelpers.js'
 import ActivityPriorityList from './Activityprioritylist.vue'
 
 defineProps({

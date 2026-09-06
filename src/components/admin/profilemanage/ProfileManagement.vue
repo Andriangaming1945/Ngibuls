@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useUsers } from '@/composables/Useusers'
-import { useAuth } from '@/composables/Useauth'
+import { useAuth } from '@/composables/useAuth'
 import UsersHeader from '@/components/admin/profilemanage/UsersHeader.vue'
 import UsersToolbar from '@/components/admin/profilemanage/UsersToolbar.vue'
 import UsersTable from '@/components/admin/profilemanage/UsersTable.vue'
