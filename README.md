@@ -34,8 +34,8 @@
 
 | Nama | Peran | Kontak |
 |------|-------|--------|
-| **Andrian Dwiputra Wibowo** | Project Lead & Full Stack Developer | [anrianwibowo06@gmail.com](mailto:anrianwibowo06@gmail.com) |
-| **Fa-Iz Faadhillah Ibrahim** | Full Stack Developer | [faiz.faadhillah@gmail.com](mailto:faiz.faadhillah@gmail.com) |
+| **Andrian Dwiputra Wibowo** | Project lead & Frontend Developer | [anrianwibowo06@gmail.com](mailto:anrianwibowo06@gmail.com) |
+| **Fa-Iz Faadhillah Ibrahim** | Backend developer | [faiz.faadhillah@gmail.com](mailto:faiz.faadhillah@gmail.com) |
 
 ---
 
