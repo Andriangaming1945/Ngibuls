@@ -23,7 +23,8 @@ const downloadingExcelId = ref(null)
 function downloadLog(log) {
   downloadingId.value = log.id
   try {
-    buildExportPdf(log.payload || []).save(log.file_name || 'perangkat-listrik.pdf')
+    const pdfName = (log.file_name || 'perangkat-listrik.pdf').replace(/\.(xlsx|pdf)$/i, '.pdf')
+    buildExportPdf(log.payload || []).save(pdfName)
   } finally {
     downloadingId.value = null
   }
@@ -32,7 +33,7 @@ function downloadLog(log) {
 async function downloadLogExcel(log) {
   downloadingExcelId.value = log.id
   try {
-    const excelName = (log.file_name || 'perangkat-listrik.pdf').replace(/\.pdf$/i, '.xlsx')
+    const excelName = (log.file_name || 'perangkat-listrik.pdf').replace(/\.(xlsx|pdf)$/i, '.xlsx')
     await downloadExportExcel(log.payload || [], excelName)
   } finally {
     downloadingExcelId.value = null

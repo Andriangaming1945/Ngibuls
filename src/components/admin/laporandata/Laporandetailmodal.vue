@@ -15,14 +15,15 @@ const downloadingExcel = ref(false)
 
 function download() {
   if (!props.log) return
-  buildExportPdf(props.log.payload || []).save(props.log.file_name || 'perangkat-listrik.pdf')
+  const pdfName = (props.log.file_name || 'perangkat-listrik.pdf').replace(/\.(xlsx|pdf)$/i, '.pdf')
+  buildExportPdf(props.log.payload || []).save(pdfName)
 }
 
 async function downloadExcel() {
   if (!props.log) return
   downloadingExcel.value = true
   try {
-    const excelName = (props.log.file_name || 'perangkat-listrik.pdf').replace(/\.pdf$/i, '.xlsx')
+    const excelName = (props.log.file_name || 'perangkat-listrik.pdf').replace(/\.(xlsx|pdf)$/i, '.xlsx')
     await downloadExportExcel(props.log.payload || [], excelName)
   } finally {
     downloadingExcel.value = false
